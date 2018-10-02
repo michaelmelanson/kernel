@@ -1,6 +1,6 @@
 # Kernel
 
-This is a place for me to tinker around with kernel development. Feel free to tinker, and let me know if you run into problems.
+This is a place for me to tinker around with kernel development. Feel free to tinker, and let me know if you run into problems. Set your expectations low, then go way *way* lower.
 
 ![Screenshot](screenshot.png)
 
