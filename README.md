@@ -2,6 +2,8 @@
 
 This is a place for me to tinker around with kernel development. Feel free to tinker, and let me know if you run into problems.
 
+![Screenshot](screenshot.png)
+
 ## Running
 
 ### Setup
