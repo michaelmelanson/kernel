@@ -29,11 +29,11 @@ make run
 
 ## Status
 
-[x] It boots!
-[x] Simple VGA driver
-  [x] Rust runtime support for `println!`
-[x] Interrupts
-[ ] Paging (WIP)
-[ ] User mode task switching
-[ ] RTL8139 network driver
-[ ] ...
+* [x] It boots!
+* [x] Simple VGA driver
+  * [x] Rust runtime support for `println!`
+* [x] Interrupts
+* [ ] Paging (WIP)
+* [ ] User mode task switching
+* [ ] RTL8139 network driver
+* [ ] *a million other things*
