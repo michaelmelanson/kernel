@@ -11,7 +11,7 @@ This requires a bit of a weird Rust development environment. Roughly you'll need
 * A Rust installation installed through `rustup`. This only works on nightly versions since about August 2018.
 * *Mac OS X:* A cross-compiled version of binutils as described here: https://os.phil-opp.com/cross-compile-binutils/
 * A checkout of the Bootloader crate checked out next to this: https://github.com/rust-osdev/bootloader/
-  * You'll need to change the `"linker"` setting to `"x86_64-elf-ld.bfd"` to point to the cross-compiled binutils.
+  * In `x86_64-bootloader.json` you'll need to change the `"linker"` setting to `"x86_64-elf-ld.bfd"`, to point to the cross-compiled binutils from above.
 
 After that, you should be able to run this to get the rest of the dependencies:
 
