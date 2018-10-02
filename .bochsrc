@@ -1,0 +1,3 @@
+megs: 1024
+ata0-master: type=disk, path="target/bootimage.bin", mode=flat, cylinders=0, heads=0, spt=0
+boot: disk
