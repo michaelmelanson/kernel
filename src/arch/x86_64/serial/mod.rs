@@ -23,7 +23,7 @@ impl SerialPort {
       unsafe fn can_read(&self) -> bool {
         (inb(self.address + 5) & 1) != 0
       }
-    
+
       unsafe fn read(&self) -> u8 {
         while !self.can_read() {}
         inb(self.address)
