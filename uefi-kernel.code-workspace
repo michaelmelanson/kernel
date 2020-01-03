@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "/Users/michael/dev/extern/uefi-rs"
+		},
+		{
+			"path": "/Users/michael/dev/x2apic-rs"
+		}
+	],
+	"settings": {}
+}

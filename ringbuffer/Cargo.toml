@@ -1,0 +1,8 @@
+[package]
+name = "ringbuffer"
+version = "0.1.0"
+authors = ["Michael Melanson <michael@michaelmelanson.net>"]
+edition = "2018"
+
+[dependencies]
+spin = "*"
