@@ -45,12 +45,12 @@ lazy_static! {
     idt.debug.set_handler_fn(debug_handler);
 
     extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame) {
-      info!("Breakpoint interrupt: {:?}", stack_frame);
+      log::info!("Breakpoint interrupt: {:?}", stack_frame);
     }
     idt.breakpoint.set_handler_fn(breakpoint_handler);
 
     extern "x86-interrupt" fn invalid_opcode_handler(stack_frame: &mut InterruptStackFrame) {
-      info!("Invalid opcode interrupt: {:?}", stack_frame);
+      log::info!("Invalid opcode interrupt: {:?}", stack_frame);
     }
     idt.invalid_opcode.set_handler_fn(invalid_opcode_handler);
 
@@ -104,7 +104,7 @@ lazy_static! {
     idt[0x2F].set_handler_fn(irq_15);
 
     extern "x86-interrupt" fn acpi_gpe(stack_frame: &mut InterruptStackFrame) {
-      info!("ACPI General Purpose Event: {:?}", stack_frame);
+      log::info!("ACPI General Purpose Event: {:?}", stack_frame);
     }
     idt[0x6F].set_handler_fn(acpi_gpe);
 
@@ -138,7 +138,7 @@ fn irq_handler(_stack_frame: &mut InterruptStackFrame, irq: u8) {
     0 => push_event(PlatformEvent::ClockTicked),
     1 => push_event(PlatformEvent::DeviceReady(DeviceID::PCKeyboard)),
     _ => {
-      warn!("Unknown IRQ {}", irq);
+      log::warn!("Unknown IRQ {}", irq);
     }
   }
 

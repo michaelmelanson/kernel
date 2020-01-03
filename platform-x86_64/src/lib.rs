@@ -5,9 +5,6 @@
 extern crate alloc;
 
 #[macro_use]
-extern crate log;
-
-#[macro_use]
 extern crate lazy_static;
 
 mod event_buffer;
@@ -61,18 +58,18 @@ impl Platform for X8664Platform {
       log::info!("Booted by UEFI {}.{}", major, minor);
     }
 
-    info!("Initializing...");
+    log::info!("Initializing...");
 
     x86_64::instructions::interrupts::disable();
 
-    debug!("- Interrupts");
+    log::debug!("- Interrupts");
     self.init_interrupts();
 
     x86_64::instructions::interrupts::enable();
 
     self.devices.push((DeviceID::PCKeyboard, Device::PCKeyboard(crate::device::pc_keyboard::PCKeyboard::new())));
 
-    info!("Done!");
+    log::info!("Done!");
   }
 
   fn poll_event(&self) -> Option<PlatformEvent<DeviceID>> {
