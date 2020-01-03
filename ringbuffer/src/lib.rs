@@ -100,18 +100,18 @@ use spin::Mutex;
 ///
 
 #[derive(Clone)]
-pub struct RingBuffer<Item: Copy> {
+pub struct RingBuffer<Item: Clone> {
   mutex: Arc<Mutex<RingBufferData<Item>>>
 }
 
 /// The thread-unsafe innards.
-struct RingBufferData<Item: Copy> {
+struct RingBufferData<Item: Clone> {
   array: Vec<Item>,
   start: usize,
   count: usize
 }
 
-impl <Item: Copy> RingBuffer<Item> {
+impl <Item: Clone> RingBuffer<Item> {
   pub fn new_with_capacity(capacity: usize) -> Self {
     RingBuffer {
       mutex: Arc::new(
@@ -156,7 +156,7 @@ impl <Item: Copy> RingBuffer<Item> {
 }
 
 /// The thread-unsafe innards of the ring buffer.
-impl <Item: Copy> RingBufferData<Item> {
+impl <Item: Clone> RingBufferData<Item> {
 
   #[inline]
   pub fn capacity(&self) -> usize {
@@ -216,7 +216,7 @@ impl <Item: Copy> RingBufferData<Item> {
       None
     } else {
       let index = self.read_position();
-      let item = self.array[index];
+      let item = self.array[index].clone();
       self.start = self.wrap_index(self.start + 1);
       self.count -= 1;
       Some(item)

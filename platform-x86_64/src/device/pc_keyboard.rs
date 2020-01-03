@@ -1,5 +1,6 @@
 use x86_64::instructions::port::Port;
 
+#[derive(Clone)]
 pub struct PCKeyboard;
 
 impl PCKeyboard {

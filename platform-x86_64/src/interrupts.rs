@@ -6,8 +6,7 @@ use x2apic::{
 };
 use spin::Mutex;
 
-use kernel::{PlatformEvent};
-use crate::DeviceID;
+use crate::{PlatformEvent, DeviceID};
 use crate::event_buffer::push_event;
 
 lazy_static! {
@@ -133,10 +132,11 @@ lazy_static! {
 
 }
 
+
 fn irq_handler(_stack_frame: &mut InterruptStackFrame, irq: u8) {
   match irq {
     0 => push_event(PlatformEvent::ClockTicked),
-    1 => push_event(PlatformEvent::DeviceReady(DeviceID::PCKeyboard)),
+    1 => push_event(PlatformEvent::DevicePollable(DeviceID::PCKeyboard)),
     _ => {
       log::warn!("Unknown IRQ {}", irq);
     }
@@ -157,18 +157,16 @@ fn init_ioapic() {
 
     ioapic.init(0x20);
 
-    ioapic.enable_irq(
-      0,
+    ioapic.enable_irq(0,
       0, // CPU(s)
       IrqMode::Fixed,
       IrqFlags::LEVEL_TRIGGERED | IrqFlags::LOW_ACTIVE,
     );
 
-    ioapic.enable_irq(
-      1,
+    ioapic.enable_irq(1,
       0, // CPU(s)
       IrqMode::Fixed,
-      IrqFlags::LOW_ACTIVE,
+      IrqFlags::empty(),
     );
   }
 }

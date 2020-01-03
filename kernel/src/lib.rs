@@ -5,24 +5,27 @@ mod device;
 mod platform;
 
 pub use crate::{
-  device::Device,
+  device::{Device, DeviceRegistry},
   platform::Platform
 };
 
-#[derive(Debug, Copy, Clone)]
-pub enum PlatformEvent<D> {
+#[derive(Debug, Clone)]
+pub enum PlatformEvent<P: Platform> {
   ClockTicked,
-  DeviceReady(D)
+  DeviceConnected(P::DeviceID, P::Device),
+  DevicePollable(P::DeviceID)
 }
 
-pub struct Kernel<Platform> {
-  pub platform: Platform
+pub struct Kernel<P: Platform> {
+  pub platform: P,
+  pub device_registry: DeviceRegistry<P>
 }
 
 impl <P: Platform> Kernel<P>  {
   pub fn new(platform: P) -> Self {
     Self {
-      platform
+      platform,
+      device_registry: DeviceRegistry::new()
     }
   }
 
@@ -36,8 +39,12 @@ impl <P: Platform> Kernel<P>  {
             log::info!("Tick!");
           },
 
-          PlatformEvent::DeviceReady(id) => {
-            if let Some(device) = self.platform.device(&id) {
+          PlatformEvent::DeviceConnected(id, device) => {
+            self.device_registry.insert(id, device);
+          }
+
+          PlatformEvent::DevicePollable(id) => {
+            if let Some(device) = self.device_registry.device(&id) {
               device.poll();
             } else {
               log::error!("Unknown device ID: {:?}", id);
@@ -50,4 +57,5 @@ impl <P: Platform> Kernel<P>  {
       self.platform.sleep();
     }
   }
+
 }

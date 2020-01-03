@@ -12,30 +12,37 @@ mod interrupts;
 mod device;
 //mod memory;
 
-use alloc::vec::Vec;
+use alloc::{
+  vec::Vec,
+  rc::Rc
+};
+use core::cell::RefCell;
 
 use uefi::prelude::*;
 
-use kernel::{Platform, PlatformEvent};
-use self::{
-  device::Device
+use kernel::{Platform};
+use self::device::{
+  pc_keyboard::PCKeyboard,
+  Device
 };
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+type PlatformEvent = kernel::PlatformEvent::<X8664Platform>;
+
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DeviceID {
   PCKeyboard
 }
 
+#[derive(Clone)]
 pub struct X8664Platform {
-  system_table: SystemTable<Boot>,
-  devices: Vec<(DeviceID, Device)>
+  system_table: Rc<RefCell<SystemTable<Boot>>>,
 }
 
 impl X8664Platform {
   pub fn new(system_table: SystemTable<Boot>) -> Self {
     Self { 
-      system_table,
-      devices: Vec::new()
+      system_table: Rc::new(RefCell::new(system_table))
     }
   }
 
@@ -52,7 +59,8 @@ impl Platform for X8664Platform {
 
     // Print out the UEFI revision number
     {
-      let rev = self.system_table.uefi_revision();
+      let system_table = self.system_table.borrow();
+      let rev = system_table.uefi_revision();
       let (major, minor) = (rev.major(), rev.minor());
 
       log::info!("Booted by UEFI {}.{}", major, minor);
@@ -67,26 +75,19 @@ impl Platform for X8664Platform {
 
     x86_64::instructions::interrupts::enable();
 
-    self.devices.push((DeviceID::PCKeyboard, Device::PCKeyboard(crate::device::pc_keyboard::PCKeyboard::new())));
+    event_buffer::push_event(PlatformEvent::DeviceConnected(
+      DeviceID::PCKeyboard, 
+      Device::PCKeyboard(PCKeyboard::new())
+    ));
 
     log::info!("Done!");
   }
 
-  fn poll_event(&self) -> Option<PlatformEvent<DeviceID>> {
+  fn poll_event(&self) -> Option<PlatformEvent> {
     event_buffer::poll_event()
   }
 
   fn sleep(&self) {
     x86_64::instructions::hlt()
-  }
-
-  fn device(&mut self, id: &DeviceID) -> Option<&mut Device> {
-    for (device_id, device) in self.devices.iter_mut() {
-      if id == device_id {
-        return Some(device);
-      }
-    }
-
-    None
   }
 }

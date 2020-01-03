@@ -1,5 +1,6 @@
 pub mod pc_keyboard;
 
+#[derive(Clone)]
 pub enum Device {
     PCKeyboard(self::pc_keyboard::PCKeyboard)
 }
