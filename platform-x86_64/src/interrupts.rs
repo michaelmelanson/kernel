@@ -1,12 +1,13 @@
 use x86_64::structures::idt::*;
 use x86_64::instructions::port::Port;
 use x2apic::{
-  ioapic::IoApic,
+  ioapic::{IoApic, IrqFlags, IrqMode},
   lapic::{LocalApic, LocalApicBuilder}
 };
 use spin::Mutex;
 
-use kernel::{Device, PlatformEvent};
+use kernel::{PlatformEvent};
+use crate::DeviceID;
 use crate::push_event;
 
 lazy_static! {
@@ -113,21 +114,17 @@ lazy_static! {
   static ref IOAPIC: Mutex<IoApic> = {
     unsafe {
       let addr = 0xfec00000; // TODO detect this
-      let mut ioapic = IoApic::new(addr);
+      let ioapic = IoApic::new(addr);
 
       Mutex::new(ioapic)
     }
   };
 
-  static ref LAPIC: Mutex<LocalApic> = {
-    let timer_index = 0;
-    let error_index = 2;
-    let spurious_index = 3;
-  
-    let mut lapic = LocalApicBuilder::new()
-      .timer_vector(timer_index)
-      .error_vector(error_index)
-      .spurious_vector(spurious_index)
+  static ref LAPIC: Mutex<LocalApic> = {  
+    let lapic = LocalApicBuilder::new()
+      .timer_vector(0)
+      .error_vector(2)
+      .spurious_vector(3)
       .build()
       .unwrap_or_else(|err| panic!("{}", err));
 
@@ -137,29 +134,15 @@ lazy_static! {
 }
 
 fn irq_handler(_stack_frame: &mut InterruptStackFrame, irq: u8) {
-  info!("IRQ {}", irq);
-
   match irq {
-    0 => push_event(PlatformEvent::DeviceReady(Device::ClockTick)),
-    1 => push_event(PlatformEvent::DeviceReady(Device::Keyboard)),
+    0 => push_event(PlatformEvent::ClockTicked),
+    1 => push_event(PlatformEvent::DeviceReady(DeviceID::PCKeyboard)),
     _ => {
       warn!("Unknown IRQ {}", irq);
     }
   }
 
-  unsafe {
-    if irq >= 8 {
-      let mut pic2: Port<u8> = Port::new(0xA0);
-      pic2.write(0x20);
-    }
-
-    let mut pic1: Port<u8> = Port::new(0x20);
-    pic1.write(0x20);
-  }
-
   unsafe { LAPIC.lock().end_of_interrupt(); }
-
-  info!("Finished handling IRQ {}", irq);
 }
 
 fn init_local_apic() {
@@ -169,8 +152,6 @@ fn init_local_apic() {
 }
 
 fn init_ioapic() {
-  use x2apic::ioapic::{IoApic, IrqFlags, IrqMode};
-
   unsafe {
     let mut ioapic = IOAPIC.lock();
 
@@ -198,11 +179,11 @@ pub fn init() {
 
   // disable 8259 PICs
   unsafe {
-    let mut pic1 = Port::new(0xa1u16);
-    pic1.write(0xffu8);
+    let mut pic1: Port<u8> = Port::new(0xa1);
+    pic1.write(0xff);
 
-    let mut pic2 = Port::new(0x21u16);
-    pic2.write(0xffu8);
+    let mut pic2: Port<u8> = Port::new(0x21);
+    pic2.write(0xff);
   }
   
   IDT.load();

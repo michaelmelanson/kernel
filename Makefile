@@ -31,8 +31,6 @@ run:
 		 -drive if=pflash,format=raw,readonly,file=OVMF_CODE.fd \
 		 -drive if=pflash,format=raw,file=OVMF_VARS-1024x768.fd \
 		 -drive format=raw,file=fat:rw:$(BOOT_DIR) \
-		 -monitor vc:1024x768 \
-		 -d trace:*acpi* \
-		 -trace events=/tmp/events
+		 -monitor vc:1024x768
 
 .PHONY: all build

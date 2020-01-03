@@ -1,70 +1,53 @@
-#![feature(futures_api)]
 #![no_std]
+#![feature(associated_type_defaults)]
 
-#[macro_use]
-extern crate log;
+mod device;
+mod platform;
+
+pub use crate::{
+  device::Device,
+  platform::Platform
+};
 
 #[derive(Debug, Copy, Clone)]
-pub enum Device {
-  Keyboard,
-  ClockTick
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum PlatformEvent {
-  DeviceReady(Device)
-}
-
-pub trait Platform {
-  type KB: Keyboard;
-
-  fn init(&self);
-  fn poll_event(&self) -> Option<PlatformEvent>;
-  fn sleep(&self);
-  fn configure_timer(&self, interval_ms: usize);
-  fn keyboard(&self) -> Self::KB;
+pub enum PlatformEvent<D> {
+  ClockTicked,
+  DeviceReady(D)
 }
 
 pub struct Kernel<Platform> {
   pub platform: Platform
 }
 
-impl <P: Platform> Kernel<P> {
+impl <P: Platform> Kernel<P>  {
   pub fn new(platform: P) -> Self {
     Self {
       platform
     }
   }
 
-  pub fn start(self) -> ! {
+  pub fn start(mut self) -> ! {
     self.platform.init();
 
     loop {
       while let Some(event) = self.platform.poll_event() {
-       info!("Platform event: {:?}", event);
+        match event {
+          PlatformEvent::ClockTicked => {
+            log::info!("Tick!");
+          },
 
-       match event {
-         PlatformEvent::DeviceReady(device) => {
-           match device {
-             Device::ClockTick => {
-               info!("Tick!");
-             },
-             Device::Keyboard => {
-               let keyboard = self.platform.keyboard();
-               let c = keyboard.get_char();
-               info!("Received key: {:?}", c);
-             }
-           }
-         }
-       }
+          PlatformEvent::DeviceReady(id) => {
+            if let Some(device) = self.platform.device(&id) {
+              device.poll();
+            } else {
+              log::error!("Unknown device ID: {:?}", id);
+            }
+          }
+        }
       }
 
-      log::info!("Kernel idle");
+      log::debug!("Kernel idle");
       self.platform.sleep();
     }
   }
-}
-
-pub trait Keyboard {
-  fn get_char(&self) -> Option<char>;
 }

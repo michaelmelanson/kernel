@@ -5,8 +5,8 @@ authors = ["Michael Melanson <michael@michaelmelanson.net>"]
 edition = "2018"
 
 [dependencies]
-uefi = { path = "../extern/uefi-rs" }
-uefi-services = { path = "../extern/uefi-rs/uefi-services" }
+uefi = "0.4.1"
+uefi-services = "0.2.0"
 log = { version = "0.4", default-features = false }
 kernel = { path = "kernel" }
 platform-x86_64 = { path = "platform-x86_64" }
