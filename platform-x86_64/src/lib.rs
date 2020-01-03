@@ -10,28 +10,19 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 
+mod event_buffer;
 mod interrupts;
 mod device;
-mod memory;
+//mod memory;
 
 use alloc::vec::Vec;
 
 use uefi::prelude::*;
 
 use kernel::{Platform, PlatformEvent};
-use ringbuffer::RingBuffer;
-use device::Device;
-
-lazy_static! {
-  static ref EVENT_BUFFER: RingBuffer<PlatformEvent<DeviceID>> = {
-    RingBuffer::new_with_capacity(1000)
-  };
-}
-
-pub(crate) fn push_event(event: PlatformEvent<DeviceID>) {
-  EVENT_BUFFER.push(event);
-}
-
+use self::{
+  device::Device
+};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DeviceID {
@@ -85,7 +76,7 @@ impl Platform for X8664Platform {
   }
 
   fn poll_event(&self) -> Option<PlatformEvent<DeviceID>> {
-    EVENT_BUFFER.poll()
+    event_buffer::poll_event()
   }
 
   fn sleep(&self) {

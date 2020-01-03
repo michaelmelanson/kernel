@@ -8,7 +8,7 @@ use spin::Mutex;
 
 use kernel::{PlatformEvent};
 use crate::DeviceID;
-use crate::push_event;
+use crate::event_buffer::push_event;
 
 lazy_static! {
   static ref IDT: InterruptDescriptorTable = {
