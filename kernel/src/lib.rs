@@ -1,9 +1,12 @@
 #![no_std]
 #![feature(associated_type_defaults)]
+#![feature(alloc_error_handler)]
+#![feature(panic_info_message)]
 
 extern crate alloc;
 
 mod device;
+mod panic;
 mod platform;
 
 pub use crate::{
@@ -32,6 +35,8 @@ impl <P: Platform> Kernel<P>  {
   }
 
   pub fn start(mut self) -> ! {
+    log::info!("Kernel starting up");
+
     self.platform.init();
     self.process_events();
 

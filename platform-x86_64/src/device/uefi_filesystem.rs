@@ -80,7 +80,7 @@ impl kernel::Filesystem<X8664Platform> for UEFIFilesystem {
         let fs = self.filesystem_protocol()?;
         
         let (_status, mut root) = fs.open_volume()??;
-        let (_status, mut file) = root.open(path, FileMode::Read, FileAttribute::empty())??;
+        let (_status, file) = root.open(path, FileMode::Read, FileAttribute::empty())??;
 
         let (_status, file_type) = file.into_type()??;
         match file_type {

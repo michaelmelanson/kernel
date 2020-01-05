@@ -1,6 +1,9 @@
 #![feature(abi_x86_interrupt)]
 #![feature(core_intrinsics)]
 #![feature(alloc_layout_extra)]
+#![feature(custom_inner_attributes)]
+#![feature(const_in_array_repeat_expressions)]
+#![feature(allocator_api)]
 #![no_std]
 
 extern crate alloc;
@@ -8,25 +11,19 @@ extern crate alloc;
 #[macro_use]
 extern crate lazy_static;
 
+mod boot_info;
+mod device;
+mod error;
 mod event_buffer;
 mod file;
 mod interrupts;
-mod device;
-mod error;
-//mod memory;
-
-use alloc::{
-  rc::Rc
-};
-use core::cell::RefCell;
-
-use uefi::prelude::*;
+#[macro_use] pub mod logging;
+mod memory;
 
 use kernel::{Platform};
 use self::{
   device::{
     pc_keyboard::PCKeyboard,
-    uefi_filesystem::UEFIFilesystem,
     Device
   },
   error::X8664Error,
@@ -35,6 +32,7 @@ use self::{
 
 type PlatformEvent = kernel::PlatformEvent::<X8664Platform>;
 
+pub use boot_info::{X8664BootInfo, X8664MemorySegment};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DeviceID {
@@ -44,18 +42,34 @@ pub enum DeviceID {
 
 #[derive(Clone)]
 pub struct X8664Platform {
-  system_table: Rc<RefCell<SystemTable<Boot>>>,
+  boot_info: X8664BootInfo
 }
 
 impl X8664Platform {
-  pub fn new(system_table: SystemTable<Boot>) -> Self {
-    Self { 
-      system_table: Rc::new(RefCell::new(system_table))
-    }
+  pub fn early_init() {
+    logging::init();
+  }
+
+  pub fn new(boot_info: X8664BootInfo) -> Self {
+    Self { boot_info }
+  }
+
+  fn init_allocator(&self) {
+    let mut available_memory = 0;
+
+    for segment in self.boot_info.memory_map.iter() {
+      memory::allocator::get().lock().add_heap(segment.start_address, segment.length);
+      available_memory += segment.length
+    }    
+
+    log::info!("Memory allocator configured with {} MiB", available_memory / 1_048_576);
+
   }
 
   fn init_interrupts(&self) {
     interrupts::init();
+    log::info!("Interrupts configured");
+
   }
 }
 
@@ -65,34 +79,13 @@ impl Platform for X8664Platform {
   type Error = X8664Error;
   type File = X8664File;
 
-  fn init(&mut self) {
-
-    // Print out the UEFI revision number
-    {
-      let system_table = self.system_table.borrow();
-      let rev = system_table.uefi_revision();
-      let (major, minor) = (rev.major(), rev.minor());
-
-      log::info!("Booted by UEFI {}.{}", major, minor);
-    }
-
-    log::info!("Initializing...");
-
-    x86_64::instructions::interrupts::disable();
-
-    log::debug!("- Interrupts");
+  fn init(&mut self) {   
+    self.init_allocator(); 
     self.init_interrupts();
-
-    x86_64::instructions::interrupts::enable();
 
     event_buffer::push_event(PlatformEvent::DeviceConnected(
       DeviceID::PCKeyboard, 
       Device::PCKeyboard(PCKeyboard::new())
-    ));
-
-    event_buffer::push_event(PlatformEvent::DeviceConnected(
-      DeviceID::UEFIFilesystem, 
-      Device::UEFIFilesystem(UEFIFilesystem::new(&self.system_table))
     ));
 
     log::info!("Done!");

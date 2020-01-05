@@ -93,12 +93,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cpuio"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22b8e308ccfc5acf3b82f79c0eac444cf6114cb2ac67a230ca6c177210068daa"
-
-[[package]]
 name = "getrandom"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -155,6 +149,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d515b1f41455adea1313a4a2ac8a8a477634fbae63cc6100e3aebb207ce61558"
 
 [[package]]
+name = "linked_list_allocator"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47314ec1d29aa869ee7cb5a5be57be9b1055c56567d59c3fb6689926743e0bea"
+dependencies = [
+ "spin 0.5.2",
+]
+
+[[package]]
 name = "log"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -192,15 +195,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pic8259_simple"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc64b2fd10828da8521b6cdabe0679385d7d2a3a6d4c336b819d1fa31ba35c72"
-dependencies = [
- "cpuio",
-]
-
-[[package]]
 name = "plain"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,12 +206,10 @@ version = "0.1.0"
 dependencies = [
  "kernel",
  "lazy_static",
+ "linked_list_allocator",
  "log",
- "pic8259_simple",
  "ringbuffer",
  "spin 0.4.10",
- "uefi",
- "uefi-services",
  "x2apic",
  "x86_64 0.8.2",
 ]
@@ -317,12 +309,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rlibc"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc874b127765f014d792f16763a81245ab80500e2ad921ed4ee9e82481ee08fe"
-
-[[package]]
 name = "rustc_version"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -414,7 +400,6 @@ dependencies = [
  "platform-x86_64",
  "ringbuffer",
  "uefi",
- "uefi-services",
 ]
 
 [[package]]
@@ -426,16 +411,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "uefi-services"
-version = "0.2.0"
-dependencies = [
- "log",
- "rlibc",
- "uefi",
- "x86_64 0.7.7",
 ]
 
 [[package]]

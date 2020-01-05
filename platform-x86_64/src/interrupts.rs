@@ -139,6 +139,7 @@ lazy_static! {
 
 
 fn irq_handler(_stack_frame: &mut InterruptStackFrame, irq: u8) {
+  log::debug!("IRQ {}", irq);
   match irq {
     0 => push_event(PlatformEvent::ClockTicked),
     1 => push_event(PlatformEvent::DevicePollable(DeviceID::PCKeyboard)),
@@ -177,6 +178,8 @@ fn init_ioapic() {
 }
 
 pub fn init() {
+  x86_64::instructions::interrupts::disable();
+
   init_ioapic();
   init_local_apic();
 
@@ -190,6 +193,5 @@ pub fn init() {
   }
   
   IDT.load();
-
-  log::info!("Initialized interrupts");
+  x86_64::instructions::interrupts::enable();
 }
