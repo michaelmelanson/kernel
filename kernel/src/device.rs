@@ -1,8 +1,14 @@
+use alloc::{
+    string::String,
+    vec::Vec
+};
 use hashbrown::HashMap;
 use crate::Platform;
 
-pub trait Device: Clone {
+pub trait Device<P: Platform>: Clone {
     fn poll(&mut self);
+
+    fn as_filesystem(&mut self) -> Option<&mut dyn Filesystem<P>> { None }
 }
 
 pub struct DeviceRegistry<P: Platform> {
@@ -23,4 +29,21 @@ impl <P: Platform> DeviceRegistry<P> {
     pub fn device(&mut self, id: &P::DeviceID) -> Option<&mut P::Device> {
         self.devices.get_mut(id)
     }
+
+    pub fn filesystem_devices(&mut self) -> Vec<P::DeviceID> {
+        let mut devices = Vec::new();
+
+        for (id, device) in self.devices.iter_mut() {
+            if let Some(_) = device.as_filesystem() {
+                devices.push(*id);
+            }
+        }
+
+        devices
+    }
+}
+
+pub trait Filesystem<P: Platform> {
+    fn list(&mut self) -> Result<Vec<String>, P::Error>;
+    fn read(&mut self, path: &str) -> Result<Vec<u8>, P::Error>;
 }

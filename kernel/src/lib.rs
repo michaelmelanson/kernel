@@ -1,11 +1,13 @@
 #![no_std]
 #![feature(associated_type_defaults)]
 
+extern crate alloc;
+
 mod device;
 mod platform;
 
 pub use crate::{
-  device::{Device, DeviceRegistry},
+  device::{Device, DeviceRegistry, Filesystem},
   platform::Platform
 };
 
@@ -31,31 +33,64 @@ impl <P: Platform> Kernel<P>  {
 
   pub fn start(mut self) -> ! {
     self.platform.init();
+    self.process_events();
+
+    self.execute("EFI\\Binaries\\init.efi").unwrap();
 
     loop {
-      while let Some(event) = self.platform.poll_event() {
-        match event {
-          PlatformEvent::ClockTicked => {
-            log::info!("Tick!");
-          },
-
-          PlatformEvent::DeviceConnected(id, device) => {
-            self.device_registry.insert(id, device);
-          }
-
-          PlatformEvent::DevicePollable(id) => {
-            if let Some(device) = self.device_registry.device(&id) {
-              device.poll();
-            } else {
-              log::error!("Unknown device ID: {:?}", id);
-            }
-          }
-        }
-      }
+      self.process_events();
 
       log::debug!("Kernel idle");
       self.platform.sleep();
     }
   }
 
+  fn process_events(&mut self) {
+    while let Some(event) = self.platform.poll_event() {
+      match event {
+        PlatformEvent::ClockTicked => {
+          log::info!("Tick!");
+        },
+
+        PlatformEvent::DeviceConnected(id, device) => {
+          log::info!("Device {:?} connected", id);
+          self.device_registry.insert(id, device);
+        }
+
+        PlatformEvent::DevicePollable(id) => {
+          if let Some(device) = self.device_registry.device(&id) {
+            device.poll();
+          } else {
+            log::error!("Unknown device ID: {:?}", id);
+          }
+        }
+      }
+    }
+  }
+
+  fn execute(&mut self, path: &str) -> Result<(), P::Error> {
+
+    let filesystem_devices = self.device_registry.filesystem_devices();
+    for id in filesystem_devices.iter() {
+      let device = self.device_registry.device(id).unwrap();
+      let fs = device.as_filesystem().unwrap();
+      let contents = fs.read(path)?;
+
+      let binary = goblin::pe::PE::parse(&contents).expect("Failed to parse PE64");
+      log::info!("Parsed object: {:#?}", binary);
+
+      for section in binary.sections {
+        let name = alloc::string::String::from_utf8(
+          section.name.iter()
+            .take_while(|c| **c != 0)
+            .map(|c| *c)
+            .collect::<alloc::vec::Vec<u8>>()
+          ).unwrap();
+        log::info!(" - Section {:?} ({} bytes to be loaded at {:#016x})", 
+          name, section.size_of_raw_data, section.virtual_address);
+      }
+    }
+
+    Ok(())
+  }
 }

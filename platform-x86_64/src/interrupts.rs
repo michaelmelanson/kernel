@@ -107,6 +107,11 @@ lazy_static! {
     }
     idt[0x6F].set_handler_fn(acpi_gpe);
 
+    extern "x86-interrupt" fn test_interrupt(stack_frame: &mut InterruptStackFrame) {
+      log::info!("Got test interrupt: {:?}", stack_frame);
+    }
+    idt[0x55].set_handler_fn(test_interrupt);
+
     idt
   };
 

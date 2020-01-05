@@ -1,5 +1,6 @@
 ARCH=x86_64
 TARGET=$(ARCH)-none-efi
+USER_TARGET=$(ARCH)-none-user
 CONFIG=debug
 QEMU=qemu-system-$(ARCH)
 
@@ -13,7 +14,7 @@ build:
 	cargo +nightly xbuild --target $(TARGET).json
 
 	cd libuser && cargo +nightly xbuild --target ../$(TARGET).json
-	cd binaries/init && cargo +nightly xbuild --release --target ../../$(TARGET).json
+	cd binaries/init && cargo +nightly xbuild --release --target ../../$(USER_TARGET).json
 
 dist:
 	mkdir -p $(BOOT_DIR)/EFI/BOOT $(BOOT_DIR)/EFI/Binaries
@@ -30,7 +31,10 @@ run:
 		 -m 128M \
 		 -drive if=pflash,format=raw,readonly,file=OVMF_CODE.fd \
 		 -drive if=pflash,format=raw,file=OVMF_VARS-1024x768.fd \
-		 -drive format=raw,file=fat:rw:$(BOOT_DIR) \
-		 -monitor vc:1024x768
+		 -drive if=none,id=stick,format=raw,file=fat:rw:$(BOOT_DIR)  \
+         -device nec-usb-xhci,id=xhci                    \
+         -device usb-storage,bus=xhci.0,drive=stick \
+		 -monitor vc:1024x768 \
+		 -serial stdio
 
 .PHONY: all build

@@ -5,8 +5,8 @@ authors = ["Michael Melanson <michael@michaelmelanson.net>"]
 edition = "2018"
 
 [dependencies]
-uefi = "0.4.1"
-uefi-services = "0.2.0"
+uefi = { path = "../../extern/uefi-rs", features = ["exts"] }
+uefi-services = { path = "../../extern/uefi-rs/uefi-services" }
 kernel = { path = "../kernel" }
 ringbuffer = { path = "../ringbuffer" }
 x86_64 = "0.8.2"

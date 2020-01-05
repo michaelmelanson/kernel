@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 log = { version = "0.4", default-features = false }
 hashbrown = "0.6.3"
+goblin = { version = "0.1", default-features = false, features = ["pe64"] }
