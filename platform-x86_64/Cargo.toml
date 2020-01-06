@@ -13,3 +13,4 @@ x2apic = { path = "../../x2apic-rs" }
 spin = "0.4.9"
 lazy_static = { version = "1.1.0", features = ["spin_no_std"] }
 linked_list_allocator = "0.6.4"
+bit = "*"

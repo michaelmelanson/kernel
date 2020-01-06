@@ -6,7 +6,7 @@ use x2apic::{
 };
 use spin::Mutex;
 
-use crate::{PlatformEvent, DeviceID};
+use crate::{PlatformEvent, device::DeviceID};
 use crate::event_buffer::push_event;
 
 lazy_static! {

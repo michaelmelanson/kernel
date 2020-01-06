@@ -2,6 +2,15 @@ use x86_64::instructions::port::Port;
 
 use crate::X8664Platform;
 
+pub fn discover() {
+  use crate::{event_buffer, PlatformEvent, device::DeviceID, Device};
+
+  event_buffer::push_event(PlatformEvent::DeviceConnected(
+    DeviceID::PCKeyboard, 
+    Device::PCKeyboard(PCKeyboard::new())
+  ));
+}
+
 #[derive(Clone)]
 pub struct PCKeyboard;
 

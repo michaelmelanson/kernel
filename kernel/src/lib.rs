@@ -10,7 +10,7 @@ mod panic;
 mod platform;
 
 pub use crate::{
-  device::{Device, DeviceRegistry, Filesystem},
+  device::{Device, DeviceRegistry, Filesystem, GraphicsDevice},
   platform::Platform
 };
 
@@ -40,7 +40,9 @@ impl <P: Platform> Kernel<P>  {
     self.platform.init();
     self.process_events();
 
-    self.execute("EFI\\Binaries\\init.efi").unwrap();
+    self.clear_screen().unwrap();
+
+    //self.execute("EFI\\Binaries\\init.efi").unwrap();
 
     loop {
       self.process_events();
@@ -71,6 +73,20 @@ impl <P: Platform> Kernel<P>  {
         }
       }
     }
+  }
+
+  fn clear_screen(&mut self) -> Result<(), P::Error> {
+    let devices = self.device_registry.graphics_devices();
+    
+    for id in devices.iter() {
+      log::info!("Found graphics device {:?}", id);
+      let device = self.device_registry.device(id).unwrap();
+      let device = device.as_graphics_device().unwrap();
+
+      device.clear()?;
+    }
+
+    Ok(())
   }
 
   fn execute(&mut self, path: &str) -> Result<(), P::Error> {

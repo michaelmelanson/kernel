@@ -41,7 +41,8 @@ unsafe impl core::alloc::Alloc for FrameAllocator {
         return Err(core::alloc::AllocErr);
     }
 
-    unsafe fn dealloc(&mut self, _: core::ptr::NonNull<u8>, _: core::alloc::Layout) { 
-        unimplemented!() 
+    unsafe fn dealloc(&mut self, ptr: core::ptr::NonNull<u8>, _layout: core::alloc::Layout) { 
+        log::debug!("Deallocating memory at {:08x}", ptr.as_ptr() as u64);
+        log::warn!("TODO implement deallocation");
     }
 }

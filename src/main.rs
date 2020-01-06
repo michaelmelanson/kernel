@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 
-#[macro_use] extern crate platform_x86_64;
-
 extern crate alloc;
 
 use uefi::{
@@ -36,17 +34,16 @@ pub extern "win64" fn uefi_start(image: uefi::Handle, system_table: SystemTable<
   }
 
   let mut uefi_mmap_storage = [0; MAX_MMAP_SIZE];
-  let (system_table, uefi_memory_map_iter) = system_table
+  let (_system_table, uefi_memory_map_iter) = system_table
     .exit_boot_services(image, &mut uefi_mmap_storage[..])
     .expect_success("Failed to exit boot services");
 
   let mut memory_map = [X8664MemorySegment { start_address: 0, length: 0}; 100];
   let mut memory_map_segments = 0;
 
-  for (i, descriptor) in uefi_memory_map_iter.enumerate() {
+  for descriptor in uefi_memory_map_iter {
     let size = descriptor.page_count * 0x1000;
     let start_address = descriptor.phys_start;
-    let end_address = descriptor.phys_start + size;
     let descriptor_type = descriptor.ty;
 
     match descriptor_type {

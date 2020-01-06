@@ -26,7 +26,6 @@ dist:
 
 run:
 	qemu-system-x86_64 -nodefaults \
-		 -display none \
 		 -vga std \
 		 -machine q35 \
 		 -m 128M \

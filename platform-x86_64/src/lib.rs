@@ -22,10 +22,7 @@ mod memory;
 
 use kernel::{Platform};
 use self::{
-  device::{
-    pc_keyboard::PCKeyboard,
-    Device
-  },
+  device::{DeviceID, Device},
   error::X8664Error,
   file::X8664File
 };
@@ -33,12 +30,6 @@ use self::{
 type PlatformEvent = kernel::PlatformEvent::<X8664Platform>;
 
 pub use boot_info::{X8664BootInfo, X8664MemorySegment};
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum DeviceID {
-  PCKeyboard,
-  UEFIFilesystem
-}
 
 #[derive(Clone)]
 pub struct X8664Platform {
@@ -69,7 +60,10 @@ impl X8664Platform {
   fn init_interrupts(&self) {
     interrupts::init();
     log::info!("Interrupts configured");
+  }
 
+  fn init_devices(&self) {
+    device::discover();
   }
 }
 
@@ -82,11 +76,7 @@ impl Platform for X8664Platform {
   fn init(&mut self) {   
     self.init_allocator(); 
     self.init_interrupts();
-
-    event_buffer::push_event(PlatformEvent::DeviceConnected(
-      DeviceID::PCKeyboard, 
-      Device::PCKeyboard(PCKeyboard::new())
-    ));
+    self.init_devices();
 
     log::info!("Done!");
   }
